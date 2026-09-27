@@ -12,7 +12,7 @@ export const DemoPaymentCard: React.FC<DemoPaymentCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`relative w-full h-44 rounded-2xl bg-gradient-to-br from-[#27272A] via-[#1E1E22] to-[#141416] p-5 shadow-2xl flex flex-col justify-between text-white border border-white/10 select-none overflow-hidden ${className}`}
+      className={`relative w-full aspect-[1.586/1] rounded-2xl bg-gradient-to-br from-[#27272A] via-[#1E1E22] to-[#141416] p-5 shadow-2xl flex flex-col justify-between text-white border border-white/10 select-none overflow-hidden ${className}`}
     >
       {/* Top row: Contactless wave icon */}
       <div className="flex items-center justify-between">

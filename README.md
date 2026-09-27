@@ -83,32 +83,15 @@
 - **Session Caching**: Instant recall when reopening a market during the same session, with a 1-click **Refresh analysis** option.
 - **Curated Event News Links**: Outbound links with publication source, timestamp, and headlines.
 
-### 📱 Mobile Payment Prototype (`#/mobile-demo`)
-- **Interactive Browser Prototype**: Recreates an in-store contactless mobile payment sequence and subsequent Round Up spare-change prompt for demonstration purposes. This is a browser-based prototype, not native iOS software or official Apple software.
-- **Reference Sources & Asset Documentation**:
-  - Design references: Apple Human Interface Guidelines (Apple Pay), Apple Pay marketing guidelines, and Apple Pay on the Web documentation.
-  - Typography: System font stack (`-apple-system, BlinkMacSystemFont, system-ui, sans-serif`). No proprietary font files are downloaded or hotlinked.
-  - Payment Mark: Standard vector mark (Apple silhouette + Pay wordmark) used in accordance with web button guidelines.
-  - Payment Card: Neutral demo payment card with masked digits (`•••• •••• •••• 4128`). No branded bank-card or titanium card artwork is used.
-  - Status Bar: Custom geometric SVG icons for demonstration display (cellular signal, Wi-Fi, battery level). No live hardware or telemetry data is requested.
-  - Sound: Simulated Web Audio prototype chime, disabled by default.
-  - Round Up Logo: Local SVG asset (`public/roundup-logo.svg`).
-- **Core In-Store Flow**:
-  1. **Ready to Pay**: Displays simulated $4.60 coffee transaction and the currently active round-up prediction destination.
-  2. **Open Wallet**: Simulated side-button or button trigger opens Wallet card presentation. Round Up is kept out of the Apple payment interface itself.
-  3. **Simulated Authorization**: Restrained Face ID authorization indicator.
-  4. **Hold Near Reader**: Contactless terminal prompt with single-tap target to complete payment.
-  5. **Payment Done**: Checkmark and "Done" indication ($4.60 settled).
-  6. **Post-Payment Round Up Notification**: Slides down ~600ms after returning to the lock screen:
-     - Header: `Round Up · now`
-     - Title: `Round up your $4.60 coffee?`
-     - Subtitle: `Add $0.40 toward [prediction] · [YES/NO].`
-     - Actions: `Yes, round up $0.40` (allocates $0.40 exactly once) and `No, skip` (leaves balance unchanged).
-- **Secondary Online Flow**:
-  - Separate online checkout with standard web Apple Pay sheet simulation.
-- **Responsive Presentation**:
-  - Desktop: Centered phone frame with quiet disclaimer (*“Interactive prototype · No real payments”*).
-  - Mobile: Fullscreen responsive view respecting safe-area insets.
+### 📱 Apple Pay + Round Up Demo (`#/mobile-demo`)
+
+- Official Apple Pay web button and unmodified Apple Pay mark.
+- Separate in-store Wallet and online checkout previews, with side-button confirmation and post-payment Round Up notifications.
+- Autoplay or step-by-step interaction; expand the notification to approve $0.40, skip, or dismiss. Approved amounts appear in the dashboard ledger.
+- Responsive device preview, keyboard-accessible payment dialog, and reduced-motion support.
+- This is a browser simulation. Native payment sheets, Face ID, NFC, and system status icons require Apple hardware/APIs.
+
+See [source references, asset provenance, fidelity limits, and verification](docs/apple-pay-demo.md).
 
 ---
 

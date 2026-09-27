@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./payment-demo.css";
 
 @layer base {
   body {

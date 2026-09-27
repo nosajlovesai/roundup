@@ -15,7 +15,8 @@ export const AppleFaceIdIcon: React.FC<AppleFaceIdIconProps> = ({
         viewBox="0 0 100 100"
         fill="none"
         stroke="currentColor"
-        className={`w-full h-full text-white transition-opacity duration-200 ${
+        aria-hidden="true"
+        className={`w-full h-full transition-opacity duration-200 ${
           isVerifying ? 'animate-faceid-restrained' : ''
         }`}
       >
