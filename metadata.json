@@ -1,0 +1,6 @@
+{
+  "name": "Round Up — Spare Change Predictions",
+  "description": "Automatically back fictional prediction markets with spare change round-ups from simulated everyday purchases.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

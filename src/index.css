@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #F8F6F0;
+    color: #172B1E;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+.font-mono-nums {
+  font-family: 'JetBrains Mono', monospace;
+  font-feature-settings: "tnum" 1;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 139, 78, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(34, 139, 78, 0);
+  }
+}
+
+.new-activity-glow {
+  animation: pulseGlow 1.6s ease-out 2;
+}
