@@ -1,20 +1,10 @@
 import React, { useState } from 'react';
-import {
-  CreditCard,
-  ArrowRight,
-  ShieldCheck,
-  ArrowUpRight,
-  Target,
-  AlertCircle,
-  Coins,
-  Settings2,
-  Sliders,
-} from 'lucide-react';
-import { SelectedPrediction, PredictionMarket } from '../types';
+import { ChevronDown, ChevronUp, CreditCard, PieChart } from 'lucide-react';
+import { SelectedPrediction, PredictionMarket, MarketHolding } from '../types';
 
 interface DemoPanelProps {
   totalAllocated: number;
-  lastDelta: number | null;
+  purchaseCount: number;
   selectedPrediction: SelectedPrediction | null;
   activeMarket: PredictionMarket | null;
   roundUpsEnabled: boolean;
@@ -23,26 +13,26 @@ interface DemoPanelProps {
   isSimulating: boolean;
   multiplier: number;
   onMultiplierChange: (multiplier: number) => void;
+  holdings: MarketHolding[];
 }
 
 interface ItemPreset {
   id: string;
   name: string;
-  emoji: string;
   price: number;
   rounded: number;
 }
 
 const PRESET_ITEMS: ItemPreset[] = [
-  { id: 'coffee', name: 'Coffee', emoji: '☕', price: 4.60, rounded: 5.00 },
-  { id: 'transit', name: 'Transit', emoji: '🚊', price: 2.75, rounded: 3.00 },
-  { id: 'lunch', name: 'Lunch', emoji: '🥗', price: 12.30, rounded: 13.00 },
-  { id: 'grocery', name: 'Groceries', emoji: '🛒', price: 18.40, rounded: 19.00 },
+  { id: 'coffee', name: 'Coffee', price: 4.60, rounded: 5.00 },
+  { id: 'transit', name: 'Transit', price: 2.75, rounded: 3.00 },
+  { id: 'lunch', name: 'Lunch', price: 12.30, rounded: 13.00 },
+  { id: 'grocery', name: 'Groceries', price: 18.40, rounded: 19.00 },
 ];
 
 export const DemoPanel: React.FC<DemoPanelProps> = ({
   totalAllocated,
-  lastDelta,
+  purchaseCount,
   selectedPrediction,
   activeMarket,
   roundUpsEnabled,
@@ -51,269 +41,307 @@ export const DemoPanel: React.FC<DemoPanelProps> = ({
   isSimulating,
   multiplier,
   onMultiplierChange,
+  holdings,
 }) => {
   const [selectedItem, setSelectedItem] = useState<ItemPreset>(PRESET_ITEMS[0]);
   const [isCustom, setIsCustom] = useState(false);
-  const [customItemName, setCustomItemName] = useState('Online Order');
+  const [customName, setCustomName] = useState('Online Order');
   const [customPriceInput, setCustomPriceInput] = useState('8.45');
+  const [showSettings, setShowSettings] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
+  // Price calculations
   const parsedCustomPrice = parseFloat(customPriceInput) || 0;
-  const customRoundedPrice = Math.ceil(parsedCustomPrice) === parsedCustomPrice && parsedCustomPrice > 0
-    ? parsedCustomPrice + 1.0
-    : Math.ceil(parsedCustomPrice);
+  const customRounded =
+    Math.ceil(parsedCustomPrice) === parsedCustomPrice && parsedCustomPrice > 0
+      ? parsedCustomPrice
+      : Math.ceil(parsedCustomPrice);
 
   const activePrice = isCustom ? parsedCustomPrice : selectedItem.price;
-  const activeRounded = isCustom ? customRoundedPrice : selectedItem.rounded;
-  const rawRoundUp = Math.max(0, Number((activeRounded - activePrice).toFixed(2)));
-  const effectiveRoundUp = Number((rawRoundUp * multiplier).toFixed(2));
+  const activeRounded = isCustom ? customRounded : selectedItem.rounded;
 
-  const isReady = roundUpsEnabled && selectedPrediction !== null && activePrice > 0;
+  const baseRoundUp = Math.max(0, Number((activeRounded - activePrice).toFixed(2)));
+  const allocatedAmount = Number((baseRoundUp * multiplier).toFixed(2));
+
+  const hasSelection = selectedPrediction !== null && activeMarket !== null;
+  const canSimulate = hasSelection && roundUpsEnabled && baseRoundUp > 0 && !isSimulating;
 
   const handleExecutePurchase = () => {
-    if (!isReady || isSimulating) return;
-    const name = isCustom ? (customItemName.trim() || 'Custom Purchase') : selectedItem.name;
-    const rounded = Number((activePrice + effectiveRoundUp).toFixed(2));
-    onSimulatePurchase(name, activePrice, rounded);
+    if (!canSimulate) return;
+    const name = isCustom ? customName.trim() || 'Custom purchase' : selectedItem.name;
+    const finalRounded = Number((activePrice + allocatedAmount).toFixed(2));
+    onSimulatePurchase(name, activePrice, finalRounded);
   };
 
   return (
-    <div
-      id="demo-simulator"
-      className="rounded-2xl bg-white border border-[#E2DDD1] shadow-sm overflow-hidden transition-all"
-    >
-      {/* Account Balance Header */}
-      <div className="bg-[#123624] text-white p-5">
-        <div className="flex items-center justify-between pb-3 border-b border-[#225037] text-xs">
-          <div className="flex items-center gap-2">
-            <CreditCard className="w-3.5 h-3.5 text-[#86EFAC]" />
-            <span className="font-mono text-[11px] text-[#A2D3B8]">Visa •••• 4128</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => onToggleRoundUps(!roundUpsEnabled)}
-            className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full cursor-pointer transition-colors ${
-              roundUpsEnabled
-                ? 'bg-[#18643C] text-[#86EFAC] border border-[#2F7E53]'
-                : 'bg-[#253D30] text-[#869E90]'
-            }`}
-          >
-            {roundUpsEnabled ? '● Auto Round-ups On' : '○ Paused'}
-          </button>
-        </div>
-
-        {/* Total Allocated */}
-        <div className="pt-4">
-          <p className="text-[11px] font-semibold text-[#8EBFA4] uppercase tracking-wider">
-            Total round-ups allocated
-          </p>
-
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-3xl font-bold text-[#72C194] font-mono">$</span>
-            <span className="text-5xl font-black tracking-tight font-mono text-white">
-              {totalAllocated.toFixed(2)}
-            </span>
-
-            {lastDelta !== null && lastDelta > 0 && (
-              <div className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-[#1B5738] text-[#6DE69E] border border-[#2D7852] text-xs font-bold animate-bounce ml-1.5 font-mono">
-                <ArrowUpRight className="w-3.5 h-3.5" />
-                <span>+${lastDelta.toFixed(2)}</span>
-              </div>
-            )}
-          </div>
-
-          <p className="text-[11px] text-[#A0CEB5] mt-1.5 font-normal">
-            Cumulative spare change routed into prediction contracts.
-          </p>
+    <div className="bg-white border border-[#E5E7EB] rounded-xl p-5 shadow-xs space-y-5 text-[#17212B]">
+      {/* Header: Title + Card Subtitle */}
+      <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
+        <div>
+          <h2 className="text-lg font-bold text-[#17212B]">Your round-ups</h2>
+          <span className="text-xs text-[#64748B] flex items-center gap-1.5 mt-0.5 font-mono">
+            <CreditCard className="w-3 h-3 text-[#64748B]" />
+            Demo card •••• 4128
+          </span>
         </div>
       </div>
 
-      <div className="p-4 sm:p-5 space-y-4">
-        {/* Next round-ups destination */}
-        <div className="rounded-xl bg-[#F8F6F0] border border-[#E3DDCF] p-3.5 space-y-1.5">
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="font-bold uppercase tracking-wider text-[#265337] flex items-center gap-1.5">
-              <Target className="w-3.5 h-3.5 text-[#1B5433]" />
-              Next round-ups go to
-            </span>
-            {selectedPrediction && (
-              <span className="text-[10px] text-[#69796F]">
-                Affects future swipes only
-              </span>
-            )}
-          </div>
+      {/* A. Total Allocated */}
+      <div className="space-y-1">
+        <span className="text-xs font-medium text-[#64748B] block">Total allocated</span>
+        <div className="flex items-baseline justify-between">
+          <span className="text-3xl font-bold font-tabular text-[#17212B]">
+            ${totalAllocated.toFixed(2)}
+          </span>
+          <span className="text-xs text-[#64748B]">
+            {purchaseCount} {purchaseCount === 1 ? 'purchase' : 'purchases'}
+          </span>
+        </div>
+      </div>
 
-          {activeMarket && selectedPrediction ? (
-            <div className="space-y-1 pt-1">
-              <div className="flex items-center gap-2">
-                <span
-                  className={`px-2 py-0.5 rounded text-[11px] font-black shrink-0 ${
-                    selectedPrediction.side === 'YES'
-                      ? 'bg-[#154E2F] text-white'
-                      : 'bg-[#963730] text-white'
+      {/* B. Next Round-ups Destination */}
+      <div className="pt-3 border-t border-[#E5E7EB] space-y-1.5">
+        <span className="text-xs font-medium text-[#64748B] block">Next round-ups go to</span>
+        {hasSelection ? (
+          <div className="flex items-center justify-between p-2.5 rounded-lg bg-[#F7F8FA] border border-[#E5E7EB]">
+            <div className="min-w-0 pr-2">
+              <span className="text-xs font-semibold text-[#17212B] block truncate">
+                {activeMarket.displayTitle}
+              </span>
+              <span className="text-[11px] text-[#64748B]">{activeMarket.categoryLabel}</span>
+            </div>
+            <span
+              className={`text-xs font-bold px-2 py-0.5 rounded border shrink-0 ${
+                selectedPrediction.side === 'YES'
+                  ? 'bg-[#E8F5EE] text-[#16734B] border-[#C6E7D5]'
+                  : 'bg-[#FEE2E2] text-[#991B1B] border-[#FECACA]'
+              }`}
+            >
+              {selectedPrediction.side}
+            </span>
+          </div>
+        ) : (
+          <p className="text-xs text-[#64748B] p-2.5 rounded-lg bg-[#F7F8FA] border border-[#E5E7EB]">
+            Choose a prediction to get started.
+          </p>
+        )}
+      </div>
+
+      {/* C. Automatic Round-ups Toggle */}
+      <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-between">
+        <div>
+          <span className="text-sm font-semibold text-[#17212B] block">Automatic round-ups</span>
+          <span className="text-xs text-[#64748B]">
+            {roundUpsEnabled ? 'Active · Allocating on purchase' : 'Paused · No round-ups routed'}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          role="switch"
+          aria-checked={roundUpsEnabled}
+          onClick={() => onToggleRoundUps(!roundUpsEnabled)}
+          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
+            roundUpsEnabled ? 'bg-[#16734B]' : 'bg-[#D1D5DB]'
+          }`}
+        >
+          <span
+            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
+              roundUpsEnabled ? 'translate-x-5' : 'translate-x-0'
+            }`}
+          />
+        </button>
+      </div>
+
+      {/* D. Demo Purchase Simulator */}
+      <div className="pt-3 border-t border-[#E5E7EB] space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-[#17212B]">Demo purchase</span>
+          <button
+            type="button"
+            onClick={() => setIsCustom(!isCustom)}
+            className="text-xs text-[#16734B] hover:underline font-medium cursor-pointer"
+          >
+            {isCustom ? 'Use presets' : 'Custom'}
+          </button>
+        </div>
+
+        {/* Compact preset selector */}
+        {!isCustom ? (
+          <div className="grid grid-cols-4 gap-1.5">
+            {PRESET_ITEMS.map((item) => {
+              const isSelectedPreset = selectedItem.id === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedItem(item)}
+                  className={`py-1.5 px-1 rounded-lg text-center border text-xs transition-colors cursor-pointer ${
+                    isSelectedPreset
+                      ? 'bg-[#E8F5EE] text-[#16734B] border-[#16734B] font-semibold'
+                      : 'bg-[#F7F8FA] text-[#64748B] border-[#E5E7EB] hover:bg-[#F3F4F6]'
                   }`}
                 >
-                  {selectedPrediction.side}
-                </span>
-                <p className="text-xs font-bold text-[#142C1E] leading-snug line-clamp-2">
-                  {activeMarket.question}
-                </p>
-              </div>
-              <p className="text-[11px] text-[#55695C]">
-                Target: {activeMarket.shortName} · Past activity remains locked to its original pick.
-              </p>
+                  <span className="block truncate">{item.name}</span>
+                  <span className="block font-mono text-[10px] mt-0.5">${item.price.toFixed(2)}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <label className="text-[#64748B] block mb-1">Item name</label>
+              <input
+                type="text"
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                className="w-full py-1.5 px-2.5 rounded-lg border border-[#E5E7EB] bg-white text-[#17212B] focus:outline-hidden focus:border-[#16734B]"
+              />
             </div>
-          ) : (
-            <div className="flex items-center gap-2 py-1 text-xs text-[#876024]">
-              <AlertCircle className="w-4 h-4 text-[#D97706] shrink-0" />
-              <span>Select BUY YES or BUY NO on any market card on the left to set your destination.</span>
+            <div>
+              <label className="text-[#64748B] block mb-1">Amount ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={customPriceInput}
+                onChange={(e) => setCustomPriceInput(e.target.value)}
+                className="w-full py-1.5 px-2.5 font-mono rounded-lg border border-[#E5E7EB] bg-white text-[#17212B] focus:outline-hidden focus:border-[#16734B]"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Clear Calculation Display */}
+        <div className="p-3 rounded-lg bg-[#F7F8FA] border border-[#E5E7EB] text-xs space-y-1.5">
+          <div className="flex items-center justify-between text-[#64748B]">
+            <span>{isCustom ? customName || 'Custom purchase' : selectedItem.name}</span>
+            <span className="font-mono text-[#17212B] font-medium">${activePrice.toFixed(2)}</span>
+          </div>
+
+          <div className="flex items-center justify-between text-[#64748B]">
+            <span>Rounded purchase</span>
+            <span className="font-mono text-[#17212B] font-medium">
+              ${(activePrice + baseRoundUp).toFixed(2)}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between pt-1.5 border-t border-[#E5E7EB] font-semibold text-[#17212B]">
+            <span>Round-up</span>
+            <span className="font-mono text-[#16734B]">+${baseRoundUp.toFixed(2)}</span>
+          </div>
+
+          {multiplier > 1 && baseRoundUp > 0 && (
+            <div className="pt-1 text-[11px] text-[#64748B]">
+              Base round-up ${baseRoundUp.toFixed(2)} × {multiplier} = ${allocatedAmount.toFixed(2)}{' '}
+              allocated.
             </div>
           )}
         </div>
 
-        {/* Round-up Rule & Multiplier Config */}
-        <div className="rounded-xl bg-[#FAF8F3] border border-[#E4DFD3] p-3.5 space-y-2.5">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-[#183B27] flex items-center gap-1.5">
-              <Sliders className="w-3.5 h-3.5 text-[#2B6D45]" />
-              Round-up multiplier
-            </span>
-            <span className="font-mono text-[11px] text-[#4F6456]">
-              {multiplier}x spare change
-            </span>
-          </div>
+        {/* Primary Action Button */}
+        <button
+          type="button"
+          disabled={!canSimulate}
+          onClick={handleExecutePurchase}
+          className={`w-full py-2.5 px-4 rounded-lg font-semibold text-sm transition-all duration-150 flex items-center justify-center gap-1.5 ${
+            canSimulate
+              ? 'bg-[#16734B] text-white hover:bg-[#125838] shadow-xs active:scale-98 cursor-pointer'
+              : 'bg-[#E5E7EB] text-[#9CA3AF] cursor-not-allowed'
+          }`}
+        >
+          <span>Simulate purchase · +${allocatedAmount.toFixed(2)}</span>
+        </button>
 
-          <div className="grid grid-cols-3 gap-1.5">
+        {/* Guidance message when disabled */}
+        {!canSimulate && (
+          <p className="text-xs text-[#64748B] text-center">
+            {!hasSelection
+              ? 'Choose a prediction on the left to get started.'
+              : !roundUpsEnabled
+              ? 'Turn on automatic round-ups above.'
+              : baseRoundUp === 0
+              ? 'Whole dollar purchase produces $0.00 round-up.'
+              : ''}
+          </p>
+        )}
+      </div>
+
+      {/* E. Round-up Settings (Multiplier 1x, 2x, 3x) in compact expandable row */}
+      <div className="pt-3 border-t border-[#E5E7EB]">
+        <button
+          type="button"
+          onClick={() => setShowSettings(!showSettings)}
+          className="w-full flex items-center justify-between text-xs text-[#64748B] hover:text-[#17212B] transition-colors cursor-pointer"
+        >
+          <span>Round-up multiplier ({multiplier}x)</span>
+          {showSettings ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        </button>
+
+        {showSettings && (
+          <div className="grid grid-cols-3 gap-1.5 mt-2.5 animate-in fade-in duration-100">
             {[1, 2, 3].map((m) => (
               <button
                 key={m}
                 type="button"
                 onClick={() => onMultiplierChange(m)}
-                className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                className={`py-1.5 px-2 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${
                   multiplier === m
-                    ? 'bg-[#15492C] text-white border-[#15492C] shadow-2xs'
-                    : 'bg-white text-[#294B37] border-[#E0D9CB] hover:bg-[#F2ECE1]'
+                    ? 'bg-[#16734B] text-white border-[#16734B]'
+                    : 'bg-[#F7F8FA] text-[#64748B] border-[#E5E7EB] hover:bg-[#F3F4F6]'
                 }`}
               >
-                {m}x Round-up
+                {m}x
               </button>
             ))}
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* Spend Simulator */}
-        <div className="space-y-2.5">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-[#163825]">Simulate Card Swipe</span>
-            <button
-              type="button"
-              onClick={() => setIsCustom(!isCustom)}
-              className="text-[11px] text-[#245D3B] hover:text-[#113C23] underline font-medium cursor-pointer"
-            >
-              {isCustom ? 'Use presets' : 'Custom amount'}
-            </button>
-          </div>
-
-          {/* Quick presets */}
-          {!isCustom ? (
-            <div className="grid grid-cols-4 gap-1.5">
-              {PRESET_ITEMS.map((item) => {
-                const active = selectedItem.id === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setSelectedItem(item)}
-                    className={`py-2 px-1 rounded-xl text-center transition-all cursor-pointer border ${
-                      active
-                        ? 'bg-[#15492C] text-white border-[#15492C] shadow-2xs font-bold'
-                        : 'bg-[#FAF8F3] text-[#1E3B2A] border-[#E4DED3] hover:bg-[#F1ECE0]'
-                    }`}
-                  >
-                    <div className="text-base leading-none">{item.emoji}</div>
-                    <div className="text-[11px] truncate mt-1">{item.name}</div>
-                    <div className={`text-[10px] font-mono ${active ? 'text-[#86EFAC]' : 'text-[#617467]'}`}>
-                      ${item.price.toFixed(2)}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-[10px] text-[#55695C] block mb-1 font-medium">Merchant / Item</label>
-                <input
-                  type="text"
-                  value={customItemName}
-                  onChange={(e) => setCustomItemName(e.target.value)}
-                  className="w-full text-xs py-1.5 px-2.5 rounded-lg border border-[#DCD5C5] bg-white text-[#183927] focus:outline-hidden focus:ring-1 focus:ring-[#16492C]"
-                  placeholder="e.g. Bookstore"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-[#55695C] block mb-1 font-medium">Swipe Amount ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.01"
-                  value={customPriceInput}
-                  onChange={(e) => setCustomPriceInput(e.target.value)}
-                  className="w-full text-xs font-mono py-1.5 px-2.5 rounded-lg border border-[#DCD5C5] bg-white text-[#183927] focus:outline-hidden focus:ring-1 focus:ring-[#16492C]"
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Allocation Calculation Preview */}
-          <div className="rounded-xl bg-[#FAF8F3] border border-[#E3DDCF] p-2.5 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1.5 text-[#4D6354]">
-              <span>Purchase: ${activePrice.toFixed(2)}</span>
-              <ArrowRight className="w-3 h-3 text-[#22633C]" />
-              <span className="font-semibold text-[#183C26]">${(activePrice + effectiveRoundUp).toFixed(2)}</span>
-            </div>
-            <div className="font-mono font-bold text-[#185331] flex items-center gap-1">
-              <Coins className="w-3.5 h-3.5 text-[#D97706]" />
-              <span>+${effectiveRoundUp.toFixed(2)}</span>
-            </div>
-          </div>
-
-          {/* Primary Action Button */}
+      {/* Collapsed Allocation Breakdown (Hidden when no allocations) */}
+      {holdings.length > 0 && (
+        <div className="pt-3 border-t border-[#E5E7EB]">
           <button
             type="button"
-            disabled={!isReady || isSimulating}
-            onClick={handleExecutePurchase}
-            className={`w-full py-3.5 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all duration-150 ${
-              isReady
-                ? 'bg-[#14472A] text-white hover:bg-[#0D331D] active:scale-98 shadow-md hover:shadow-lg cursor-pointer'
-                : 'bg-[#EAE4D8] text-[#8E8B82] cursor-not-allowed opacity-75'
-            }`}
+            onClick={() => setShowBreakdown(!showBreakdown)}
+            className="w-full flex items-center justify-between text-xs text-[#64748B] hover:text-[#17212B] transition-colors cursor-pointer"
           >
-            <CreditCard className="w-4 h-4 text-[#86EFAC]" />
-            <span>
-              Swipe Visa card ({isCustom ? `$${activePrice.toFixed(2)}` : `${selectedItem.name} — $${activePrice.toFixed(2)}`})
+            <span className="flex items-center gap-1.5">
+              <PieChart className="w-3.5 h-3.5 text-[#64748B]" />
+              <span>Allocation breakdown ({holdings.length})</span>
             </span>
-            {isReady && (
-              <span className="ml-1 text-[11px] font-semibold bg-[#225F3B] text-[#86EFAC] px-2 py-0.5 rounded-md font-mono">
-                +${effectiveRoundUp.toFixed(2)}
-              </span>
+            {showBreakdown ? (
+              <ChevronUp className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5" />
             )}
           </button>
 
-          {/* In-simulator guidance banner */}
-          {!isReady && (
-            <div className="text-[11px] text-[#7C5921] bg-[#FFFBEB] p-2.5 rounded-xl border border-[#FDE68A] flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-[#D97706] shrink-0" />
-              <span>
-                {!selectedPrediction
-                  ? 'Pick BUY YES or BUY NO on any market card on the left.'
-                  : 'Switch on “Auto Round-ups” at top.'}
-              </span>
+          {showBreakdown && (
+            <div className="mt-3 space-y-2 text-xs animate-in fade-in duration-100">
+              {holdings.map((h) => (
+                <div
+                  key={`${h.marketId}-${h.side}`}
+                  className="flex items-center justify-between p-2 rounded-lg bg-[#F7F8FA] border border-[#E5E7EB]"
+                >
+                  <div className="min-w-0 pr-2">
+                    <span className="font-semibold text-[#17212B] block truncate">
+                      {h.marketShortTitle}
+                    </span>
+                    <span className="text-[11px] text-[#64748B] font-mono">
+                      {h.side} · {h.percentage.toFixed(0)}%
+                    </span>
+                  </div>
+                  <span className="font-mono font-bold text-xs text-[#17212B]">
+                    ${h.amount.toFixed(2)}
+                  </span>
+                </div>
+              ))}
             </div>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 };

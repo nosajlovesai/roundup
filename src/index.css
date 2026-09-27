@@ -2,28 +2,156 @@
 
 @layer base {
   body {
-    background-color: #F8F6F0;
-    color: #172B1E;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #F7F8FA;
+    color: #17212B;
+    font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 }
 
-.font-mono-nums {
-  font-family: 'JetBrains Mono', monospace;
-  font-feature-settings: "tnum" 1;
+.font-tabular {
+  font-variant-numeric: tabular-nums;
 }
 
-@keyframes pulseGlow {
+/* =========================================================
+   SIMULATED MOBILE INTERACTION ANIMATIONS (PROTOTYPE)
+   ========================================================= */
+
+/* Side-button prompt subtle nudge */
+@keyframes side-prompt-nudge {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(34, 139, 78, 0.4);
+    transform: translateX(0);
+    opacity: 0.7;
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(34, 139, 78, 0);
+    transform: translateX(3px);
+    opacity: 1;
   }
 }
 
-.new-activity-glow {
-  animation: pulseGlow 1.6s ease-out 2;
+.animate-side-prompt {
+  animation: side-prompt-nudge 1.6s ease-in-out infinite;
+}
+
+/* Restrained Face ID verification state */
+@keyframes faceid-subtle-scale {
+  0%, 100% {
+    transform: scale(0.98);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+}
+
+.animate-faceid-restrained {
+  animation: faceid-subtle-scale 1.5s ease-in-out infinite;
+}
+
+/* Subtle contactless reader pulse */
+@keyframes contactless-pulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.animate-contactless-wave {
+  animation: contactless-pulse 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+/* Checkmark Drawing */
+@keyframes checkmark-circle {
+  0% {
+    stroke-dashoffset: 283;
+    transform: rotate(-90deg) scale(0.9);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    transform: rotate(-90deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes checkmark-stroke {
+  0% {
+    stroke-dashoffset: 60;
+    opacity: 0;
+  }
+  40% {
+    stroke-dashoffset: 60;
+    opacity: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.animate-checkmark-circle {
+  stroke-dasharray: 283;
+  transform-origin: center;
+  animation: checkmark-circle 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-checkmark-stroke {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: checkmark-stroke 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Round Up Notification Slide Down */
+@keyframes notification-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-28px) scale(0.96);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(3px) scale(1.005);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-notification-slide {
+  animation: notification-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Wallet Card Entrance */
+@keyframes wallet-card-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(60px) scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-wallet-card-enter {
+  animation: wallet-card-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Bright Green Circle -->
+  <circle cx="256" cy="256" r="225" fill="#00A651" />
+
+  <!-- R Stem (Left vertical bar) -->
+  <path
+    d="M 152 165 L 152 355"
+    stroke="#FFD100"
+    stroke-width="38"
+    stroke-linecap="round"
+  />
+
+  <!-- R Upper Loop -->
+  <path
+    d="M 152 165 L 208 165 C 242 165 268 190 268 224 C 268 258 242 283 208 283 L 152 283"
+    stroke="#FFD100"
+    stroke-width="38"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- R Sweeping Leg curving into U-turn and Upward Shaft -->
+  <path
+    d="M 195 272 C 220 292 240 325 258 352 C 274 378 304 388 334 370 C 352 357 356 333 356 308 L 356 198"
+    stroke="#FFD100"
+    stroke-width="38"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Arrowhead pointing straight UP -->
+  <path
+    d="M 356 135 C 359 135 362 138 364 141 L 406 195 C 411 202 406 211 398 211 L 375 211 L 375 212 L 337 212 L 337 211 L 314 211 C 306 211 301 202 306 195 L 348 141 C 350 138 353 135 356 135 Z"
+    fill="#FFD100"
+  />
+</svg>

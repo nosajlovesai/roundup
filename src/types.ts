@@ -4,11 +4,20 @@ export type PredictionCategory =
   | 'sports'
   | 'news';
 
+export interface MarketNewsItem {
+  id: string;
+  source: string;
+  timeAgo: string;
+  title: string;
+  url: string;
+}
+
 export interface PredictionMarket {
   id: string;
   category: PredictionCategory;
   categoryLabel: string;
   shortName: string;
+  displayTitle: string;
   question: string;
   description: string;
   resolutionRule: string;
@@ -16,6 +25,7 @@ export interface PredictionMarket {
   volumeUsd: number;               // e.g. 342800
   closeDate: string;               // e.g. 'Dec 31, 2026'
   change24h: number;               // e.g. +3.5
+  newsItems?: MarketNewsItem[];
 }
 
 export type PredictionSide = 'YES' | 'NO';
@@ -23,6 +33,16 @@ export type PredictionSide = 'YES' | 'NO';
 export interface SelectedPrediction {
   marketId: string;
   side: PredictionSide;
+}
+
+export interface MarketHolding {
+  marketId: string;
+  marketQuestion: string;
+  marketShortTitle: string;
+  category: PredictionCategory;
+  side: PredictionSide;
+  amount: number;
+  percentage: number;
 }
 
 export interface ActivityItem {
@@ -34,9 +54,11 @@ export interface ActivityItem {
   roundUpAmount: number; // 0.40
   marketQuestion: string;
   marketShortTitle: string;
-  side: PredictionSide;
+  side: PredictionSide | 'WITHDRAWAL';
   fullMessage: string;
   isNew?: boolean;
+  isWithdrawal?: boolean;
+  isMobileDemo?: boolean;
 }
 
 export interface PurchaseFeedback {
@@ -46,5 +68,17 @@ export interface PurchaseFeedback {
   toAmount: number;
   roundUp: number;
   targetMarket: string;
-  targetSide: PredictionSide;
+  targetSide: PredictionSide | 'WITHDRAWAL';
+}
+
+export interface GeminiMarketIntelligence {
+  summary: string;
+  bullCase: string[];
+  bearCase: string[];
+  watchpoints: string[];
+  contractNuance: string;
+  yesWinsIf: string;
+  noWinsIf: string;
+  model?: string;
+  source?: string;
 }
